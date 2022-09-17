@@ -1,0 +1,14 @@
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/wk_01.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task5.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task1.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task2.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task3.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task4.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task6.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task7.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task8.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task9.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task10.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/task11.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Programming/KozlovAssignment/term1/wk_01/cmake-build-debug/CMakeFiles/rebuild_cache.dir
