@@ -4,3 +4,5 @@ with more
 tha 1
 line
 !!!!!
+
+I'm empty junk file, but please, check wk_02 and wk_03 in the term1 directory.
