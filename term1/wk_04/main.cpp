@@ -5,13 +5,28 @@
 #include <memory>
 
 using namespace std;
+#include "json.hpp"
+#include "json_fwd.hpp"
+using json = nlohmann::json;
 
 // parameters of simulation
-double duration = 100;
-double dt = 0.01;
-int n = floor(duration/dt);
-//--------------------------
+double duration;
+double dt;
+int n;
+void init(char* config){
+    std::ifstream i(config, std::ifstream::binary);
+        json j;
+        i >> j;
+    duration = j["StartCondition"]["duration"];
+    dt = j["StartCondition"]["dt"];
+    n = floor(duration/dt);
+}
 
+
+//-----------MATERIAL DOT OBJECT-----------//
+//--contains: start conditions (x_0, v_0)--//
+//------------angular frequency (w)--------//
+//------------x,v,energy arrays------------//
 class Object {
 public:
     double x_0, v_0, w;
@@ -23,9 +38,14 @@ public:
         v(new double[n]),
         energy(new double[n]),
         x_0(10), v_0(0), w(1)
-        {
-            *x = x_0;
-            *v = v_0;}
+        {   
+            std::ifstream i("config.json");
+            json j;
+            i >> j;
+            *x = j["StartCondition"]["x_0"];
+            *v = j["StartCondition"]["v_0"];
+            w = j["StartCondition"]["w"];
+        }
 
     ~Object()
     {
@@ -76,6 +96,8 @@ public:
 
 };
 
+
+//---Kahan Summation for array of arguments---//
 double KahanSum(double* input, int inputsize) {
     double sum = 0.0;
     double c = 0.0;
@@ -88,6 +110,9 @@ double KahanSum(double* input, int inputsize) {
     return sum;
 }
 
+
+//----------------Kahan Summation for 2 arguments----------------//
+//---needs to initiate double c variable for error remembering---//
 double KahanSum(double input, double term, double c) {
         double y = term - c;
         double t = input + y;
@@ -96,6 +121,9 @@ double KahanSum(double input, double term, double c) {
 }
 
 
+//---------------------------------------//
+//------NUMERIC CALCULATION METHODS------//
+//---------------------------------------//
 class HoynsSchemeKahan{
 public:
     double* x_1;
@@ -130,6 +158,7 @@ void count(Object &object){
      HoynsSchemeKahan(HoynsSchemeKahan const &src) = delete;
 };
 
+
 class HoynsScheme{
 public:
     double* x_1;
@@ -158,6 +187,7 @@ public:
     HoynsScheme(HoynsScheme const &src) = delete;
 };
 
+
 class EulersMethod{
 public:
     EulersMethod() {}
@@ -175,6 +205,7 @@ public:
 
     ~EulersMethod() {}
 };
+
 
 class EulersMethodKahan{
 public:
@@ -197,6 +228,7 @@ public:
 
     ~EulersMethodKahan() {}
 };
+
 
 class RungeKutta{
 public:
@@ -256,6 +288,10 @@ public:
     RungeKutta(RungeKutta const &src) = delete;
 };
 
+
+//---------------------------------------//
+//-------SCRIPTS FOR DATA OUTPUT---------//
+//---------------------------------------//
 class FileOutput{
 public:
     void write(Object &object){
@@ -281,8 +317,15 @@ public:
     }
 };
 
+//-------VARIOUS BASIC TESTS AND EXPERIMANTS---------//
+//--Simple Method Test------------calculate trajectory, using object's start conditions
+//--KahanError--------------------estimates errror that occures depending on machine epsilon
+//--Time Reverse------------------calculates trajectory in strait direction and then backwards
+//--Time Reverse Error------------estimates error depending on scale of dt 
 class Tests{
 public:
+
+
     void SimpleMethodTest(){
         Object object;
         RungeKutta method;
@@ -291,6 +334,8 @@ public:
         FileOutput file;
         file.write(object);
     }
+
+
     void KahanError() {
         ofstream out;
         out.open("/home/starman/CLionProjects/RangiCut/TimeError.txt");
@@ -317,6 +362,8 @@ public:
         }
         out.close();
     }
+
+
         void TimeReverse(){
             Tests test;
             test.SimpleMethodTest();
@@ -343,6 +390,7 @@ public:
             out.close();
             dt = abs(dt);
         }
+
         
         void TimeReverseError(){
         ofstream out;
@@ -378,11 +426,12 @@ public:
         }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+    init(argv[1]);
     Tests test;
     test.SimpleMethodTest();
-    //test.TimeReverse();
-    //test.KahanError();
-    //test.TimeReverseError();
+    test.TimeReverse();
+    test.KahanError();
+    test.TimeReverseError();
     return 0;
 }
