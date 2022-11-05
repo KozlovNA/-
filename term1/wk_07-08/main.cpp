@@ -13,6 +13,7 @@ using json = nlohmann::json;
 double duration;
 double dt;
 int n;
+string OUTPATH;
 void init(char* config){
     std::ifstream i(config, std::ifstream::binary);
         json j;
@@ -20,6 +21,7 @@ void init(char* config){
     duration = j["StartCondition"]["duration"];
     dt = j["StartCondition"]["dt"];
     n = floor(duration/dt);
+    OUTPATH = j["OUTPATH"];
 }
 
 
@@ -206,24 +208,32 @@ public:
     ~EulersMethod() {}
 };
 
-
+//---------GENERIC--ALGORYTHMS--------//
 class PhysPendState{
 public:
     array<double, 2> state;
-    ///FIXME: add configurations from config.json
-    double g = 9.8;
-    double l = 0.1;
-    //state[0] is x
-    //state[1] is v
+    double g;
+    double l;
     PhysPendState(){
-        state[0] = 0.1;
-        state[1] = 0;
+        std::ifstream i("config.json", std::ifstream::binary);
+        json j;
+        i >> j;
+        state[0] = j["PhysicalPendulum"]["teta_0"];
+        state[1] = j["PhysicalPendulum"]["d(teta_0)/dt"];
+        g = j["PhysicalPendulum"]["g"];
+        l = j["PhysicalPendulum"]["lambda"];
     }
     PhysPendState(double x, double v){
+        PhysPendState st;
+        g = st.g;
+        l = st.l;
         state[0] = x;
         state[1] = v;
     }
     PhysPendState(PhysPendState const &single_state){
+        PhysPendState st;
+        g = st.g;
+        l = st.l;
         state[0] = single_state.state[0];
         state[1] = single_state.state[1];
     }
@@ -267,17 +277,13 @@ void solver(){
     Method method;
     vector<State> states;
     State initstate;
-    //cout << "x " <<initstate.state[0]<< '\n';
-    //cout << "v " <<initstate.state[1]<< '\n';
     states.push_back(initstate);
     for (int i = 0; i < n; i++){
         State new_state(method.step(states.back())); 
         states.push_back(new_state);
-        //if (i <= 500) cout << "x " <<  new_state.state[0] << '\n';
-        //if (i <= 500) cout << "v " <<  new_state.state[1] << '\n';
     }
     ofstream out;
-        out.open("/home/starman/CLionProjects/RangiCut/PhysPend.txt");
+        out.open(OUTPATH);
         if (out.is_open())
         {
             for (int i = 0; i < n; i++){
@@ -287,7 +293,7 @@ void solver(){
         out.close();
 }
 
-
+//--------------------------------------//
 class RungeKutta{
 public:
     RungeKutta() {}
