@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <valarray>
 
 using namespace std;
 #include "json.hpp"
@@ -15,7 +16,7 @@ double duration;
 double dt;
 int n;
 string OUTPATH;
-void init(char* config){
+void init(string config){
     std::ifstream i(config, std::ifstream::binary);
         json j;
         i >> j;
@@ -426,7 +427,6 @@ public:
 };
 
 
-
 class PhysDrivenPendState{
 public:
     array<double, 3> state;
@@ -495,6 +495,10 @@ public:
         return F * sin(w_F * t);
     }
 
+    double fcos(double t){
+        return F * cos(w_F * t);
+    }
+
     double meandr(double t){
         if (fmod(t, 2*3.1416/w_F) < 2*3.1416/w_F*(1-sk)) return 1;
         else return 0;
@@ -504,7 +508,7 @@ public:
         PhysDrivenPendState result;
         result.state[2] = state[2] + dt;
         result.state[0] = state[1];
-        result.state[1] = - w * w * state[0] - 2 * y * state[1] + fsin(state[2]);
+        result.state[1] = - w * w * state[0] - 2 * y * state[1] + fcos(state[2]);
         return result;
     }
     
@@ -631,6 +635,50 @@ public:
             temp[0] = teta_0*exp(-y*i*dt)*cos(sqrt(w*w-y*y)*i*dt);
             //temp[1] = teta_0*exp(-y*i*dt)*cos(w*i*dt)
             temp[1] = 0;
+            }
+            solution.push_back(temp);
+        }
+        ofstream out;
+        out.open(output);
+        if (out.is_open())
+        {
+            for (int i = 0; i < n; i++){
+                out <<  dt * i  << ' ' << solution[i][0]<<'\n';
+            }
+        }
+        out.close();
+    }
+};
+
+class DO_precise_solution{
+public:
+    vector<array<double, 2>> solution;
+    double w;
+    double y;
+    double F;
+    double w_F;
+    double sk;
+    double phi_0;
+
+    DO_precise_solution(){
+        std::ifstream i("config.json", std::ifstream::binary);
+        json j;
+        i >> j;
+        w = j["DrivenForcePendulum"]["w"];
+        y = j["DrivenForcePendulum"]["y"];
+        F = j["DrivenForcePendulum"]["F"];
+        w_F = j["DrivenForcePendulum"]["w_F"];
+        sk = j["DrivenForcePendulum"]["skvazh"];
+        phi_0 = atan(2*y*w_F/(w_F*w_F - w*w));
+    }
+
+    void solve(string output){
+
+        for (int i = 0; i < n; i++){
+            array<double, 2> temp;
+            if (w > y) {
+            temp[0] = F/(sqrt((w*w-w_F*w_F)*(w*w - w_F*w_F)+4*y*y*w_F*w_F))*(cos(w_F*i*dt+phi_0) - exp(-y*i*dt)*cos(phi_0)*cos(sqrt(w*w-y*y)*i*dt) + (w_F*sin(phi_0)-cos(phi_0))/(sqrt(w*w - y*y))*exp(-y*i*dt)*sin(sqrt(w*w-y*y)*i*dt));
+            temp[1] = 0; //velocity not done yet
             }
             solution.push_back(temp);
         }
@@ -887,5 +935,7 @@ int main(int argc, char* argv[]) {
     //PGP_presise_solution prsol;
     //prsol.solve("/home/starman/CLionProjects/RangiCut/GammaPres.txt");
     solver<PhysDrivenPendState, GenericRK<PhysDrivenPendState>>("/home/starman/CLionProjects/RangiCut/PhysDrivenPend3.txt");
+    DO_precise_solution prsol;
+    prsol.solve("/home/starman/CLionProjects/RangiCut/DO_precise.txt");
     return 0;
 }
